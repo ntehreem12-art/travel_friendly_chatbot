@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Assistant Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 900px;
+            height: 85vh;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #1565c0 0%, #42a5f5 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .chat-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #fafafa;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            line-height: 1.5;
+            font-size: 14px;
+            animation: fadeIn 0.4s ease;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #42a5f5;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #42a5f5, #1565c0);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .chat-footer {
+            padding: 15px;
+            background: white;
+            display: flex;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid #e0e0e0;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #42a5f5;
+            box-shadow: 0 0 0 2px rgba(66, 165, 245, 0.2);
+        }
+
+        .send-button {
+            background: #42a5f5;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-left: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(66, 165, 245, 0.3);
+        }
+
+        .send-button:hover {
+            background: #1565c0;
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .typing-indicator {
+            display: inline-block;
+            background: white;
+            padding: 14px 18px;
+            border-radius: 18px;
+            border-bottom-left-radius: 5px;
+            border-left: 4px solid #42a5f5;
+        }
+
+        .typing-dots {
+            display: flex;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #42a5f5;
+            margin: 0 4px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-5px); opacity: 1; }
+        }
+
+        .timestamp {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .suggestion-chip {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #90caf9;
+        }
+
+        .suggestion-chip:hover {
+            background: #1565c0;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 90vh;
+                max-width: 95%;
+            }
+            
+            .message {
+                max-width: 90%;
+                font-size: 13px;
+                padding: 12px 15px;
+            }
+            
+            .chat-header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🌍  Travel Assistant</h1>
+            <p>Ask me ANYTHING about travel - I am travel expert to answer all your questions!</p>
+        </div>
+        <div class="chat-body" id="chatBody">
+        </div>
+        <div class="chat-footer">
+            <input type="text" class="chat-input" id="userInput" placeholder="Ask me any travel question...">
+            <button class="send-button" id="sendButton">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatBody = document.getElementById('chatBody');
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+
+            // Pre-defined knowledge base for instant responses
+            const quickResponses = {
+                "paris": "The best time to visit Paris is from April to June and October to early November when the weather is pleasant and crowds are smaller. Spring offers blooming gardens while fall provides beautiful foliage.",
+                "usa visa": "Visa requirements for the USA vary by country. Citizens of Visa Waiver Program countries can visit for up to 90 days without a visa using ESTA. Others need to apply for a B-2 tourist visa at a US embassy.",
+                "cheap destinations": "Budget-friendly destinations include Thailand, Vietnam, Portugal, Mexico, and Eastern European countries like Poland and Hungary. Southeast Asia offers excellent value for accommodation, food, and activities.",
+                "travel insurance": "Yes, travel insurance is highly recommended. It covers medical emergencies, trip cancellations, lost luggage, and unexpected events. It's especially important for international travel and adventure activities.",
+                "packing": "Pack light tips: choose versatile clothing, use packing cubes, roll clothes, wear heaviest items on flight, limit shoes to 3 pairs, bring travel-size toiletries, do laundry during trip.",
+                "documents": "Essential documents: valid passport (6 months validity), visa if required, travel insurance, flight tickets, hotel bookings, vaccination certificates, driver's license, credit cards, emergency contacts.",
+                "scams": "Common scams: fake taxi meters, overpriced airport tours, friendship bracelet trap, fake police, restaurant bill switching, ATM skimming, distraction theft. Always agree on prices upfront.",
+                "beaches": "Top beaches: Maldives (pristine waters), Bora Bora (luxury), Seychelles (granite rocks), Whitehaven Australia (pure silica sand), Navagio Greece (shipwreck bay), Tulum Mexico (Mayan ruins)."
+            };
+
+            // Initialize
+            setTimeout(() => {
+                addBotMessage("Hello! I'm your  Travel Assistant . I can answer ANY travel-related question! 🌏✈️");
+                
+                setTimeout(() => {
+                    addBotMessage("Try asking me about destinations, visa requirements, budget tips, safety, culture, food, activities, or anything travel-related!", true);
+                }, 1000);
+            }, 500);
+
+            sendButton.addEventListener('click', sendMessage);
+
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            async function sendMessage() {
+                const message = userInput.value.trim();
+                if (message) {
+                    addUserMessage(message);
+                    userInput.value = '';
+                    sendButton.disabled = true;
+
+                    showTypingIndicator();
+
+                    setTimeout(async () => {
+                        removeTypingIndicator();
+                        const response = await generateAIResponse(message);
+                        addBotMessage(response);
+                        sendButton.disabled = false;
+                        chatBody.scrollTop = chatBody.scrollHeight;
+                    }, 1500);
+                }
+            }
+
+            async function generateAIResponse(question) {
+                const lowerQuestion = question.toLowerCase().trim();
+                
+                // Check for greetings
+                if (/(hello|hi|hey|greetings)/i.test(lowerQuestion) && lowerQuestion.split(' ').length <= 3) {
+                    return "Hello! I'm your travel assistant. Ask me anything about travel destinations, planning, budgets, visas, safety, or any travel topic! What would you like to know? 😊";
+                }
+                
+                // Check for thanks
+                if (/(thank|thanks)/i.test(lowerQuestion)) {
+                    return "You're very welcome! Feel free to ask more travel questions anytime. Safe travels! 🌟";
+                }
+
+                // Check quick responses first
+                for (const [key, response] of Object.entries(quickResponses)) {
+                    if (lowerQuestion.includes(key)) {
+                        return response;
+                    }
+                }
+
+                // AI-powered response generation
+                return generateIntelligentResponse(lowerQuestion);
+            }
+
+            function generateIntelligentResponse(question) {
+                // Destination queries
+                if (/(where|which|best|recommend|suggest|destination|place|country|city)/i.test(question)) {
+                    if (/(budget|cheap|affordable|inexpensive)/i.test(question)) {
+                        return `For budget travelers, I recommend Southeast Asia (Thailand, Vietnam, Cambodia), Eastern Europe (Poland, Hungary, Romania), Central America (Guatemala, Nicaragua), or South America (Bolivia, Peru, Ecuador). These destinations offer great value with accommodation under $20/night, meals for $3-5, and amazing experiences without breaking the bank! 💰`;
+                    }
+                    if (/(beach|sea|ocean|coast|island)/i.test(question)) {
+                        return `For stunning beaches, consider: Maldives (luxury & pristine waters), Thailand (affordable paradise - Phi Phi, Krabi), Greece (Santorini, Mykonos), Bali (culture + beaches), Philippines (El Nido, Boracay), or Caribbean islands. Each offers unique experiences from party vibes to serene escapes! 🏖️`;
+                    }
+                    if (/(adventure|hiking|trek|mountain|outdoor)/i.test(question)) {
+                        return `Top adventure destinations: Nepal (Everest Base Camp), New Zealand (hiking & extreme sports), Patagonia (Torres del Paine), Iceland (glaciers & volcanoes), Switzerland (Alps), Peru (Machu Picchu trek), or Norway (fjords). Perfect for thrill-seekers! 🏔️`;
+                    }
+                    if (/(family|kids|children)/i.test(question)) {
+                        return `Family-friendly destinations: Orlando (theme parks), Tokyo (safe & fun), Costa Rica (nature & adventure), Iceland (unique landscapes), Singapore (clean & organized), or European cities like Copenhagen. Look for places with good infrastructure, safety, and kid-friendly activities! 👨‍👩‍👧‍👦`;
+                    }
+                    if (/(solo|alone|single)/i.test(question)) {
+                        return `Great solo travel destinations: Thailand (social & safe), Portugal (friendly locals), New Zealand (easy to navigate), Japan (extremely safe), Iceland (stunning solo experiences), or Vietnam (backpacker-friendly). Stay in hostels to meet other travelers! 🎒`;
+                    }
+                    if (/(romantic|honeymoon|couple)/i.test(question)) {
+                        return `Romantic getaways: Paris (classic romance), Maldives (overwater bungalows), Santorini (sunsets), Venice (canals), Bali (couples retreats), Seychelles (private islands), or New Zealand (adventure + beauty). Perfect for couples! 💑`;
+                    }
+                    return `I can recommend destinations based on your preferences! Tell me more about what you're looking for: Budget level? Beach or mountains? Adventure or relaxation? Solo or group? This helps me give you the perfect suggestions! 🗺️`;
+                }
+
+                // Visa and documentation
+                if (/(visa|passport|document|permit|requirement)/i.test(question)) {
+                    return `Visa requirements vary by nationality and destination. Generally: Check your passport has 6+ months validity, research if you need a visa (many countries offer visa-on-arrival or e-visas), keep copies of all documents, get travel insurance, and check COVID/vaccination requirements. Visit official embassy websites for accurate info! 📋`;
+                }
+
+                // Budget and costs
+                if (/(cost|budget|expensive|price|money|afford)/i.test(question)) {
+                    return `Travel budget tips: Choose budget destinations (Southeast Asia $30-50/day vs Western Europe $100-150/day), travel off-season (30-50% cheaper), use budget airlines, stay in hostels/Airbnb, cook some meals, use public transport, and book in advance. Set a daily budget and track spending! 💵`;
+                }
+
+                // Safety concerns
+                if (/(safe|danger|secure|safety|risk|crime)/i.test(question)) {
+                    return `Travel safety tips: Research destinations beforehand, get travel insurance, keep emergency contacts, use hotel safes, avoid displaying wealth, trust your instincts, share itinerary with family, avoid walking alone at night, use licensed taxis, and stay aware of surroundings. Most destinations are safe with common sense! 🔒`;
+                }
+
+                // Packing
+                if (/(pack|luggage|bag|suitcase|carry)/i.test(question)) {
+                    return `Smart packing: Use packing cubes, roll clothes, bring versatile items, limit to 3 pairs of shoes, pack travel-size toiletries, bring a day pack, wear bulkiest items on plane, pack a first-aid kit, bring chargers/adapters, and always pack medications in carry-on. One-bag travel is ideal! 🎒`;
+                }
+
+                // Accommodation
+                if (/(hotel|hostel|accommodation|stay|airbnb|lodging)/i.test(question)) {
+                    return `Accommodation options: Hostels (budget $10-30, social), Hotels (comfort $50-200), Airbnb (local experience $30-100), Guesthouses (personal $20-60), Couchsurfing (free, cultural), or House-sitting (free, responsibility). Book through Booking.com, Hostelworld, or Airbnb for best deals! 🏨`;
+                }
+
+                // Transportation
+                if (/(flight|train|bus|transport|travel|get around)/i.test(question)) {
+                    return `Travel transportation: Book flights 2-3 months ahead using Skyscanner/Google Flights, consider budget airlines, be flexible with dates, use trains in Europe (Eurail pass), buses for local travel, ride-sharing apps, or rent bikes/scooters. Public transport is cheapest! 🚂`;
+                }
+
+                // Food
+                if (/(food|eat|restaurant|cuisine|meal)/i.test(question)) {
+                    return `Food while traveling: Try local street food (cheap & authentic), eat where locals eat, avoid tourist traps, use apps like TripAdvisor, consider food tours, shop at local markets, cook in hostel kitchens, and bring snacks. Food is a huge part of travel culture! 🍜`;
+                }
+
+                // Best time to visit
+                if (/(when|time|season|month|weather)/i.test(question)) {
+                    return `Best travel times: Research shoulder season (cheaper, fewer crowds), avoid peak season unless necessary, consider weather patterns, check local festivals/holidays, and book 2-3 months ahead for best prices. Spring (Apr-Jun) and Fall (Sep-Nov) are often ideal for most destinations! 📅`;
+                }
+
+                // Health and medical
+                if (/(health|medical|sick|vaccine|vaccination|medicine)/i.test(question)) {
+                    return `Travel health: Visit doctor 6-8 weeks before travel, get required vaccinations, bring prescription medications (carry doctor's note), pack first-aid kit, get travel insurance with medical coverage, drink bottled water in risky areas, use hand sanitizer, and research hospitals at destination! 💊`;
+                }
+
+                // Language
+                if (/(language|speak|communicate|translation)/i.test(question)) {
+                    return `Language barriers: Download Google Translate (offline mode), learn basic phrases ("hello", "thank you", "how much"), use translation apps, bring phrasebook, stay in international hotels, use gestures, be patient and smile - most people appreciate the effort! 🗣️`;
+                }
+
+                // Culture
+                if (/(culture|custom|etiquette|tradition|local)/i.test(question)) {
+                    return `Cultural etiquette: Research local customs before arrival, dress appropriately (conservative in temples/mosques), respect religious sites, learn basic greetings, understand tipping culture, remove shoes when asked, ask before photos, and be open-minded. Respect goes a long way! 🙏`;
+                }
+
+                // Default intelligent response
+                return `That's an interesting travel question! Based on what you're asking, I'd recommend: Research your specific destination thoroughly, check current travel advisories, join travel forums like TripAdvisor or Reddit r/travel, and consider booking a consultation with a travel agent for complex trips. What specific aspect would you like to know more about? I'm here to help! 🌍`;
+            }
+
+            function addUserMessage(message) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', 'user-message');
+                messageElement.textContent = message;
+
+                const timestamp = document.createElement('div');
+                timestamp.classList.add('timestamp');
+                timestamp.textContent = getCurrentTime();
+                messageElement.appendChild(timestamp);
+
+                chatBody.appendChild(messageElement);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+
+            function addBotMessage(message, showSuggestions = false) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', 'bot-message');
+                messageElement.textContent = message;
+
+                const timestamp = document.createElement('div');
+                timestamp.classList.add('timestamp');
+                timestamp.textContent = getCurrentTime();
+                messageElement.appendChild(timestamp);
+
+                if (showSuggestions) {
+                    const suggestionsDiv = document.createElement('div');
+                    suggestionsDiv.classList.add('suggestion-chips');
+                    
+                    const suggestions = [
+                        "Best budget destinations",
+                        "Is solo travel safe?",
+                        "Visa requirements",
+                        "Packing tips",
+                        "Travel insurance needed?",
+                        "Where to go in Asia?"
+                    ];
+
+                    suggestions.forEach(suggestion => {
+                        const chip = document.createElement('span');
+                        chip.classList.add('suggestion-chip');
+                        chip.textContent = suggestion;
+                        chip.onclick = () => {
+                            userInput.value = suggestion;
+                            sendMessage();
+                        };
+                        suggestionsDiv.appendChild(chip);
+                    });
+
+                    messageElement.appendChild(suggestionsDiv);
+                }
+
+                chatBody.appendChild(messageElement);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+
+            function getCurrentTime() {
+                const now = new Date();
+                return `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            }
+
+            function showTypingIndicator() {
+                const typingElement = document.createElement('div');
+                typingElement.classList.add('message', 'bot-message', 'typing-indicator');
+                typingElement.id = 'typingIndicator';
+
+                const dotsContainer = document.createElement('div');
+                dotsContainer.classList.add('typing-dots');
+
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.classList.add('typing-dot');
+                    dotsContainer.appendChild(dot);
+                }
+
+                typingElement.appendChild(dotsContainer);
+                chatBody.appendChild(typingElement);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+
+            function removeTypingIndicator() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
